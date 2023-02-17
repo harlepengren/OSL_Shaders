@@ -1,5 +1,8 @@
-// (c) 2018 Harlepengren LLC
-// Licensed under Creative Commons CC BY 4.0
+// (c) 2018 Harlepengren
+// http://harlepengren.com
+//
+// Licensed under Apache 2.0
+// This software is provided AS IS WITH NO EXPRESS OR IMPLIED WARRANTY OF ANY KIND.
 
 #define D_AVERAGE 0
 #define D_DIFFERENCE 1
