@@ -1,0 +1,49 @@
+// (c) 2018 Harlepengren LLC
+// Licensed under Creative Commons CC BY 4.0
+
+#define D_NORMAL 0
+#define D_AVERAGE 1
+#define D_DIFFERENCE 2
+#define D_WEIGHT 3
+#define D_THRESHOLD 4
+
+float calculateGradient(float scale, int level, vector currentPoint) {
+    float currentScale = scale/pow(2,level);
+    
+    // Get the origin of the radial gradient
+    float originX = currentScale*trunc(currentPoint[0]/currentScale)+currentScale/2;
+    float originY = currentScale*trunc(currentPoint[1]/currentScale)+currentScale/2;
+    
+    vector origin = vector(originX,originY,0);
+    vector radius = currentPoint-origin;
+    
+    return 1-length(radius)/(currentScale/2);
+}
+
+shader circleGradient (vector currentPoint=0, int type=0, float scale=1, int level=0, output float fac=0) {
+    if(type == D_NORMAL) {
+        fac = calculateGradient(scale,level,currentPoint);
+    } else if(type == D_AVERAGE) {
+        for(int index=0; index<= level; ++index) {
+            fac += calculateGradient(scale,index,currentPoint)/float(level+1);
+        }
+    } else if(type == D_DIFFERENCE) {
+        for(int index=0; index<= level; ++index) {
+            fac -= calculateGradient(scale,index,currentPoint)/float(level+1);
+        }
+    } else if(type == D_WEIGHT) {
+        for(int index=0; index<= level; ++index) {
+            fac += calculateGradient(scale,index,currentPoint)/pow(2,level);
+        }
+    } else if(type == D_THRESHOLD) {
+        for(int index=0; index<= level; ++index) {
+            fac += calculateGradient(scale,index,currentPoint)/pow(2,index);
+        }
+        
+        if(fac <= 0.48) {
+            fac = 0;
+        } else if(fac >= 0.52) {
+            fac = 1;
+        }
+    }
+}

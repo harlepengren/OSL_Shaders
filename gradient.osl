@@ -1,0 +1,11 @@
+// (c) 2018 Harlepengren LLC
+// Licensed under Creative Commons CC BY 4.0
+
+shader gradient (vector textCoord=(0,0,0), float scale=20.0, float seed=10.0, output float outColor=0.0) {
+    float x = textCoord[0];
+    float y = textCoord[1];
+    
+    float currentNoise = noise(point(x*5,y*5,seed));
+    
+    outColor = (1+sin((x+currentNoise/2)*scale))/2;
+}

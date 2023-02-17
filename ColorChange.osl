@@ -1,0 +1,8 @@
+// (c) 2018 Harlepengren LLC
+// Licensed under Creative Commons CC BY 4.0
+
+shader colorChange(float inputSeed=0, float saturation=1, float value=1, output color outColor=1) {
+    float hue = inputSeed/250;
+    
+    outColor = color("hsv",hue,saturation,value);
+}

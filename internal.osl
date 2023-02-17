@@ -1,0 +1,20 @@
+// (c) 2018 Harlepengren LLC
+// Licensed under Creative Commons CC BY 4.0
+
+volume internal(float radius=1.0, float seed=10.0, float fAmount=1.0, color inputColor=1, output closure color BSDF=0)
+{
+    float fNoise = noise("uperlin",P,seed);
+    float currentDistance = length(P);
+    
+    if(fNoise < 0.5) {
+        if(currentDistance < radius) {
+            BSDF = henyey_greenstein(0);
+        } else {
+            BSDF = 0;
+        }
+    } else if(fNoise < 0.6) {
+        BSDF = absorption()*fAmount;
+    } else {
+        BSDF = emission()*inputColor*(2*fNoise);
+    }
+}
