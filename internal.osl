@@ -1,5 +1,6 @@
-// (c) 2018 Harlepengren LLC
-// Licensed under Creative Commons CC BY 4.0
+// (c) 2018 Harlepengren
+// Licensed Apache 2.0
+// Provided AS-IS
 
 volume internal(float radius=1.0, float seed=10.0, float fAmount=1.0, color inputColor=1, output closure color BSDF=0)
 {
