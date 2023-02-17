@@ -1,6 +1,8 @@
 // (c) 2018 Harlepengren
-// Licensed Apache 2.0
-// Provided AS-IS
+// http://harlepengren.com
+//
+// Licensed under Apache 2.0
+// This software is provided AS IS WITH NO EXPRESS OR IMPLIED WARRANTY OF ANY KIND.
 
 volume internal(float radius=1.0, float seed=10.0, float fAmount=1.0, color inputColor=1, output closure color BSDF=0)
 {
