@@ -1,0 +1,10 @@
+volume LavaLamp(color inputColor = 1, float seed=10.0, float power=100, output closure color BSDF=0) {
+    float fNoise = noise("uperlin",P,seed);
+    
+    if(fNoise > 0.5) {
+        //BSDF = henyey_greenstein(0)*inputColor;
+        BSDF = emission()*fNoise*power*inputColor;
+    } else {
+        BSDF = 0;
+    }
+}
