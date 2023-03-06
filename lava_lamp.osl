@@ -1,8 +1,9 @@
 volume LavaLamp(color inputColor = 1, float seed=10.0, float power=100, output closure color BSDF=0) {
+    // Get the perlin noise value for the current position (P) and seed
     float fNoise = noise("uperlin",P,seed);
-    
+
+    // If the perlin noise value is greater than 0.5 emit light. Otherwise output nothing.    
     if(fNoise > 0.5) {
-        //BSDF = henyey_greenstein(0)*inputColor;
         BSDF = emission()*fNoise*power*inputColor;
     } else {
         BSDF = 0;
