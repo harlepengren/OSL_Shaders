@@ -1,0 +1,150 @@
+// Function to shade a glass ball with a magic substance inside.
+// (c) 2023 Harlepengren
+// Licensed under Apache 2.0
+// This software is provided AS IS WITH NO EXPRESS OR IMPLIED WARRANTY OF ANY KIND.
+
+/**********************************************************************
+Function to calculate the distance between two points.
+This function offers 4 different ways of calculating distance.
+The exponent parameter is only used for the minkowski distance.
+**********************************************************************/
+float voronoi_distance(vector a,
+    vector b,
+    string metric,
+    float exponent)
+{
+    if (metric == "actual") {
+        return distance(a, b);
+    }
+    else if (metric == "manhattan") {
+        return fabs(a[0] - b[0]) + fabs(a[1] - b[1]) + fabs(a[2] - b[2]);
+    }
+    else if (metric == "chebychev") {
+        return max(fabs(a[0] - b[0]), max(fabs(a[1] - b[1]), fabs(a[2] - b[2])));
+    }
+    else if (metric == "minkowski") {
+        return pow(pow(fabs(a[0] - b[0]), exponent) + pow(fabs(a[1] - b[1]), exponent) +
+                        pow(fabs(a[2] - b[2]), exponent),
+                    1.0 / exponent);
+    }
+    else {
+        return 0.0;
+    }
+}
+
+/**********************************************************************
+Voronoi texture function.
+**********************************************************************/
+float voronoi(vector coord,
+    float smoothness,
+    float exponent,
+    float randomness,
+    string metric)
+{
+    vector cellPosition = vector(floor(coord[0]),floor(coord[1]),floor(coord[2]));
+    vector localPosition = coord - cellPosition;
+
+    float smoothDistance = 8.0;
+    vector smoothColor = vector(0,0,0);
+    vector smoothPosition = vector(0,0,0);
+
+    // Look at cells to the left, right, up, down, forward, backward to find closest points
+    for (int k = -2; k <= 2; k++) {
+        for (int j = -2; j <= 2; j++) {
+            for (int i = -2; i <= 2; i++) {
+                vector cellOffset = vector(i, j, k);
+                point pointPosition = cellOffset +
+                                        hashnoise(cellPosition + cellOffset) * randomness;
+                float distanceToPoint = voronoi_distance(
+                    pointPosition, localPosition, metric, exponent);
+                float h = smoothstep(
+                    0.0, 1.0, 0.5 + 0.5 * (smoothDistance - distanceToPoint) / smoothness);
+                float correctionFactor = smoothness * h * (1.0 - h);
+                smoothDistance = mix(smoothDistance, distanceToPoint, h) - correctionFactor;
+                correctionFactor /= 1.0 + 3.0 * smoothness;
+            }
+        }
+    }
+
+    return smoothDistance;
+}
+
+/**********************************************************************
+Musgrave texture function
+octaves is the number of iterations of noise
+lacunarity is the distance between each octave
+**********************************************************************/
+float musgrave(point p, float dimension, float lacunarity, float octaves)
+{
+    float value = 0.0;
+    float pwr = 1.0;
+    float pwHL = pow(lacunarity, -dimension);
+
+    for (int i = 0; i < int(floor(octaves)); i++) {
+        value += noise("perlin",p) * pwr;
+        pwr *= pwHL;
+        p *= lacunarity;
+    }
+
+    float rmd = octaves - floor(octaves);
+    if (rmd != 0.0) {
+        value += rmd * noise("perlin",p) * pwr;
+    }
+
+    return value;
+}
+
+/**********************************************************************
+
+**********************************************************************/
+float ramp(float value, float threshold)
+{
+    if(value <= threshold)
+    {
+        return 0;
+    }
+    
+    return (value - threshold)/(1-threshold);
+}
+
+/**********************************************************************
+OSL shader with a volume output and surface output.
+Volume:
+    - Emission shader is composed of voronoi and musgrave textures
+    - Scatter
+    - Absorption
+Surface: Emulates glass shell
+**********************************************************************/
+shader magic(
+    color inputColor = color(1.0, 1.0, 1.0),
+    color glassColor = color(1.0, 1.0, 1.0),
+    float seed=1.0,
+    float vScale=1.0,
+    float vSmooth=1.0,
+    float vRandom=1.0,
+    float mScale=1.0,
+    float threshold=0.55,
+    float density=1.0,
+    float IOR=1.4,
+    output closure color surfBSDF = 0,
+    output closure color BSDF = 0)
+{
+    
+    // Volume
+    float vor_distance = voronoi((P+seed)*vScale, vSmooth, 1.0, vRandom, "actual");
+    float height = ramp(musgrave(vector(vor_distance)*mScale,0.0,1.0,3.0),threshold);
+
+    if(height >= 0.5){
+        BSDF = inputColor*height*emission();
+    }
+    
+    BSDF += inputColor*henyey_greenstein(0) + (color(1,1,1)-inputColor)*absorption()*max(density,0.0);
+    
+    // Glass Outer Shell
+    float Kr, Kt;
+    vector R, T;
+    fresnel(I,N,IOR,Kr,Kt,R,T);
+    
+    surfBSDF = glassColor*microfacet_ggx(N,0.1)*Kr + glassColor*microfacet_beckmann_refraction(N,0.0,IOR)*Kt;
+    
+}
