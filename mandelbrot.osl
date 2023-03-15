@@ -1,0 +1,72 @@
+struct complex
+{
+    float real;
+    float imaginary;
+};
+
+complex __operator__add__ (complex a, complex b)
+{
+    complex final;
+    final.real = a.real + b.real;
+    final.imaginary = a.imaginary + b.imaginary;
+    return final;
+}
+
+complex __operator__mul__ (complex a, complex b)
+{
+    complex final;
+    final.real = a.real * b.real + a.imaginary * b.imaginary * -1;
+    final.imaginary = a.real * b.imaginary + a.imaginary * b.real;
+    return final;
+}
+
+complex pow(complex a, int degree)
+{   
+    if(degree == 0){
+        return {1,0};
+    } else if (degree < 1){
+        return a;
+    }
+    
+    complex final = {1,0};
+    for(int index=0; index < degree; index++){
+        final = final * a;
+    }
+    
+    return final;
+}
+
+float absolute(complex a)
+{
+    return sqrt(pow(a.real,2)+pow(a.imaginary,2));   
+}
+
+float mandelbrot(complex c, int degree, int max_iter)
+{
+    complex z = {0,0};
+    int n = 0;
+    
+    while((absolute(z) <= 2.0) && (n<max_iter)){
+        z = pow(z,degree)+c;
+        n += 1;
+    }
+
+    return float(n)/max_iter;
+}
+
+shader mandelbrot(vector pos=P,
+    color inputColor1 = color(1.0),
+    color inputColor2 = color(0.0),
+    float scale = 1.0,
+    int degree = 2,
+    int max_iterations = 256,
+    output color out_color = color(0.0, 0.0, 0.0),
+    output float result = 0.0)
+{
+    // Create an imaginary number
+    complex input = {pos[1]/scale,pos[2]/scale};
+    
+    result = mandelbrot(input,degree,max_iterations);
+    
+    out_color = mix(inputColor1,inputColor2, result);
+}
