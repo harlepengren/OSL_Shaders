@@ -1,0 +1,81 @@
+// Scratched Texture
+// An OSL shader that generates texture to make swirly micro scratch look by
+// controlling the anistropy and roughness.
+//
+// Blender Version Created by Harlepengren
+//
+// Based on shader available at https://github.com/cuckon/scratched
+// Original OSL Author: John Su <cuckons@gmail.com> from idea by Hang Li(悬挂鲤) and Ben Paschke.
+
+#define DIVISION 40
+
+// Function to determine whether a point is on a line
+float line(point p, float direction, float width){
+    float theta = direction * M_PI;
+    float k = tan(theta);
+    float distance = abs(k * p[0] - p[1])/sqrt(k * k + 1);
+    return 1 - step(width*0.5, distance);
+}
+
+
+shader scratch(
+    vector inputUV=vector(0.0,0.0,0.0),
+    float density=0.1,
+    float roughness_min=0.0,
+    float roughness_max=0.01,
+    float roughness_default = 0.1,
+    float anisotropic_min = 0.1,
+    float anisotropic_max = 0.2,
+    float anisotropic_default = 0,
+    float width=0.001,
+    float offset=0.0,
+    output color Cf = 0
+){
+    float delta = 1.0/(DIVISION - 1);
+    float max_radius = sqrt(density);
+    int max_search_cell = (int)ceil(max_radius/delta);
+    point index = point(round(inputUV[0]/delta), round(inputUV[1]/delta), 0.0);
+    point shading_p = point(inputUV[0], inputUV[1] , 0.0);
+    point current_index;
+
+    point current_origin_p;
+    float scratch = 0, direction=0;
+    float roughness = roughness_default, anisotropic = anisotropic_default;
+    
+    // Search Iteration: Check whether this point is on a line.
+    for (int x = -max_search_cell; x <= max_search_cell; ++x){
+        for (int y = -max_search_cell; y <= max_search_cell; ++y){
+            current_index = index + point(x, y, 0);
+
+            current_origin_p = (current_index + (hashnoise(current_index) - 0.5)) * delta;
+            direction = hashnoise(current_index + vector(123, 456, 0));
+            scratch = line(
+                current_origin_p - shading_p,
+                direction,
+                width * hashnoise(current_index)
+            );
+            if (scratch)
+            {
+                roughness = roughness_default + mix(
+                    roughness_min,
+                    roughness_max,
+                    hashnoise(current_index + vector(123, 456, 1))
+                );
+                anisotropic = anisotropic_default + mix(
+                    anisotropic_min,
+                    anisotropic_max,
+                    hashnoise(current_index + vector(123, 456, 2))
+                );
+                break;
+            }
+        }
+        if (scratch)
+            break; 
+    }
+    
+    Cf = color(
+        roughness,
+        (direction * 0.5 + offset) * (scratch > 1e-4),
+        anisotropic
+    );
+}
