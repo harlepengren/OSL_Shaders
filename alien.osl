@@ -1,0 +1,40 @@
+// Simple Fresnel: Based on Surface Car Paint at https://cg-lion.com/2020/07/25/freebie-advanced-car-paint-osl-shader/
+float simple_fresnel(normal nrm, float ior)
+{
+    float r = pow( ( 1.0 - ior ) / ( 1.0 + ior ), 2.0 );
+    return r + ( 1.0 - r ) * pow( 1.0 - fabs( dot( -I, nrm ) ), 5.0 );
+}
+
+shader alien(
+    color baseColor=1.0,
+    color fleckColor=1.0,
+    float roughness=0.2,
+    float transparency=0.75,
+    float specular=0.25,
+    float ior=1.6,
+    float clearCoat=1.0,
+    output closure color bsdf=diffuse(N))
+{
+    // Diffuse    
+    closure color finalDiffuse = diffuse(N) * (1-specular)*(1-transparency)*baseColor;
+    
+    // Transparent/Translucent
+    closure color finalTransparent;
+    float mixNoise = 0.15*noise("usimplex",P*2);
+    if(mixNoise < 0.5)
+    {
+        finalTransparent = fleckColor*translucent(N) * (mixNoise * 2) * (1-specular)*transparency;
+    }
+    else
+    {
+        finalTransparent = transparent()*(1-specular)*transparency;
+    }
+    
+    // Specular
+    closure color finalSpecular = microfacet_ggx(N, roughness) * specular;
+
+    // Clear Coat
+    float clearCoatWeight = simple_fresnel(N,ior) * clearCoat;
+    bsdf =  finalSpecular + finalDiffuse + finalTransparent;
+    bsdf = bsdf * (1-clearCoatWeight) + microfacet_ggx(N,0) * clearCoatWeight;
+}
