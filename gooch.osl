@@ -1,0 +1,28 @@
+shader gooch(
+    vector inputVector = vector(0,0,0),
+    color baseColor = color(1.0, 1.0, 1.0),
+    color highlight = 1,
+    color warmColor = color(0.3, 0.3, 0),
+    color coolColor = color(0, 0, 0.55),
+    float specular = 0.2,
+    output closure color out_color = 0.0
+    )
+{
+    // Black edge lines    
+    float edge = (dot(N,I) + 1.0) / 2.0; 
+    
+
+    // Color Shift
+    color coolFinal = coolColor + 0.25 * baseColor;
+    color warmFinal = warmColor + 0.25 * baseColor;
+    
+    vector L = normalize(inputVector);
+    float t = (dot(N,L) + 1)/2;
+    
+    vector R = 2 * dot(N,L)*(N-L);
+    float specOut = specular * (dot(R,I) + 1)/2;//clamp(100 * dot(R,I) - 97,0.0,1.0);
+
+    color mixColor = (1-specOut) * t * warmFinal + (1-t) * coolFinal;
+    out_color = specOut * microfacet_ggx(N,0.2) + mixColor * diffuse(N);
+    //out_color = edge*diffuse(N)*color(0,0,0) + (1-edge)*diffuse(N)*color(1.0,0,0);//mixColor;
+}
