@@ -7,10 +7,6 @@ shader gooch(
     output closure color out_color = 0.0
     )
 {
-    // Black edge lines    
-    float edge = (dot(N,I) + 1.0) / 2.0; 
-    
-
     // Color Shift
     color coolFinal = coolColor + 0.25 * baseColor;
     color warmFinal = warmColor + 0.25 * baseColor;
@@ -19,9 +15,10 @@ shader gooch(
     float t = (dot(N,L) + 1)/2;
     
     vector R = 2 * dot(N,L)*(N-L);
-    float specular = (dot(R,I) + 1)/2;//clamp(100 * dot(R,I) - 97,0.0,1.0);
+    float specular = clamp((dot(R,I) + 1)/2,0,1.0);
+    
+    // Debug
+    //printf("Specular: %f   Warm: %f   Cool: %f\n",specular,(1-specular)*t, (1-t));
 
-    //color mixColor = (1-specOut) * t * warmFinal + (1-t) * coolFinal;
     out_color = specular * highlight * diffuse(N) + (1 - specular) * t * warmFinal * diffuse(N) + (1-t) * coolFinal * diffuse(N);
-    //out_color = edge*diffuse(N)*color(0,0,0) + (1-edge)*diffuse(N)*color(1.0,0,0);//mixColor;
 }
