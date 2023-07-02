@@ -14,7 +14,7 @@ shader gooch(
     vector L = normalize(inputVector);
     float t = (dot(N,L) + 1)/2;
     
-    vector R = 2 * dot(N,L)*(N-L);
+    vector R = 2 * normalize(dot(N,L)*(N-L));
     float specular = clamp((dot(R,I) + 1)/2,0,1.0);
     
     // Debug
