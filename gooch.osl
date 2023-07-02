@@ -4,6 +4,7 @@ shader gooch(
     color highlight = 1,
     color warmColor = color(0.3, 0.3, 0),
     color coolColor = color(0, 0, 0.55),
+    float exponent = 2.0,
     output closure color out_color = 0.0
     )
 {
@@ -14,8 +15,9 @@ shader gooch(
     vector L = normalize(inputVector);
     float t = (dot(N,L) + 1)/2;
     
-    vector R = 2 * normalize(dot(N,L)*(N-L));
-    float specular = clamp((dot(R,I) + 1)/2,0,1.0);
+    //vector R = normalize(2 * dot(N,L)*(N-L));
+    //float specular = clamp((dot(R,I) + 1)/2,0,1.0);
+    float specular = pow((dot(N,I) + 1)/2,exponent);
     
     // Debug
     //printf("Specular: %f   Warm: %f   Cool: %f\n",specular,(1-specular)*t, (1-t));
