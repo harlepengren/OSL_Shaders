@@ -1,0 +1,25 @@
+// Create a basic doughnut
+// Based on code from https://www.sanatcharankar.com/osl-st-shading
+
+shader name(vector uv=vector(u,v,0),
+            float s_position = 0.5,
+            float t_position = 0.5,
+            float r_max = 0.5,
+            float r_min = 0.4,
+            color pat_color = color(1, 1, 1),
+            color bak_color = color(0, 1, 0),
+            output color resultRGB = 0)
+{
+    float s = uv[0];
+    float t = uv[1];
+
+    float ss = s - floor(s);
+    float tt = t - floor(t);
+ 
+    float dist = distance(point(s_position,t_position,0), point(ss,tt,0));
+ 
+    if(dist <= r_max && dist >= r_min)
+        resultRGB = pat_color;
+    else
+        resultRGB = bak_color;
+}

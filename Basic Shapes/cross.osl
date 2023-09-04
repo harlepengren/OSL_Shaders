@@ -1,0 +1,33 @@
+// Create a basic cross
+// Based on code from https://www.sanatcharankar.com/osl-st-shading
+
+shader cross(vector uv=vector(u,v,0),
+             float s_width = 0.2,
+             float s_position = 0.5,
+             float t_width = 0.2,
+             float t_position = 0.5,
+             float max_length = 1,
+             color pat_color = color(1,0,0),
+             color bak_color = color(1,1,0),
+             output color resultRGB = 0)                            
+{
+    float s = uv[0];
+    float t = uv[1];
+
+    float ss = s - floor(s);
+    float tt = t - floor(t);
+    float t_pos = abs(tt-t_position);
+    float s_pos = abs(ss-s_position);
+
+    float t_max = t_position + t_width/2;
+    float t_min = t_position - t_width/2;
+ 
+    float s_max = s_position + s_width/2;
+    float s_min = s_position - s_width/2;
+ 
+    if(((s_pos <= max_length/2 && tt >= t_min && tt <= t_max) || (t_pos <= max_length/2 && ss >= s_min && ss <= s_max)))
+        resultRGB = pat_color;
+    else
+        resultRGB = bak_color;
+}
+
